@@ -1,0 +1,204 @@
+#include<iostream>
+#include <stdio.h>  
+#include <stdlib.h>  
+using namespace std;
+typedef struct treapnode
+{
+	int val, pr, size, co;
+	treapnode * lc;
+	treapnode* rc;
+	treapnode(int val = 0, int pr = 0)
+	{
+		lc = rc = NULL;
+		this->val = val;
+		this->pr = pr;
+		this->size = 1;
+		this->co = 1;
+	}
+}*pttree;
+
+pttree root = NULL;
+void update(pttree &root);
+void right(pttree &node);
+void left(pttree &node);
+bool  ins(pttree &root, pttree &node);
+void insert(pttree &root, int v, int p);
+pttree search(pttree root, int val);
+void remove(pttree &org);
+void preor(pttree root);
+
+void update(pttree  &node)
+{
+	node->size = node->co;
+	if (node->lc)
+		node->size += node->lc->size;
+	if (node->rc)
+		node->size += node->rc->size;
+}
+void right(pttree &node)
+{
+	pttree temp = node->lc;
+	node->lc = temp->rc;
+	temp->rc = node;
+	node = temp;
+	update(node);
+	update(node->rc);
+}
+
+void left(pttree &node)
+{
+	pttree temp = node->rc;
+	node->rc = temp->lc;
+	temp->lc = node;
+	node = temp;
+	update(node);
+	update(node->lc);
+}
+bool  ins(pttree &root, pttree &node)
+{
+
+	if (!root)
+	{
+		root = node;
+		return true;
+	}
+	else  if (node->val<root->val)
+	{
+		bool flag;
+		flag=ins(root->lc, node);
+		if (node->pr<root->pr)
+			right(root);
+		update(root);
+		return flag;
+	}
+	else if (node->val>root->val)
+	{
+		bool flag;
+		flag=ins(root->rc, node);
+		if (node->pr<root->pr)
+			left(root);
+		update(root);
+		return flag;
+	}
+	else
+	{
+		root->co++;
+		root->size++;
+		return false;
+	}
+}
+
+void insert(pttree &root, int v, int p)
+{
+	pttree a = new treapnode(v, p);
+	if (!ins(root, a))
+		delete (a);
+}
+
+pttree search(pttree root, int val)
+{
+	if (!root)
+		return NULL;
+	else if (val == root->val)
+		return root;
+	else if (val<root->val)
+		return	search(root->lc, val);
+	else
+		return search(root->rc, val);
+
+}
+bool rem(pttree &root, int val)
+{
+	if (!root)
+		return false;
+	else if (val == root->val)
+	{
+		remove(root);
+		return true;
+	}
+	else if (val<root->val)
+		return rem(root->lc, val);
+	else
+		return rem(root->rc, val);
+
+}
+void remove(pttree &root)
+{
+	while ((root->lc) && (root->rc))
+	{
+		if (root->lc->pr<root->rc->pr)
+		{
+			right(root);
+			remove(root->rc);
+		}
+		else if (root->lc->pr>root->rc->pr)
+		{
+			left(root);
+			remove(root->lc);
+
+		}
+		return;
+	}
+
+	pttree p;
+	if (root->lc)
+	{
+		p = root;
+		root = root->lc;
+		delete(p);
+	}
+	else if (root->rc)
+	{
+		p = root;
+		root = root->rc;
+		delete(p);
+	}
+	else root = NULL;;
+}
+
+void preor(pttree root)
+{
+	if (!root)
+		return;
+	cout << root->val << " ";
+	if (root->lc)
+		preor(root->lc);
+	if (root->rc)
+		preor(root->rc);
+}
+int  rank1(pttree &root, int val)
+{
+	int ans=0;
+	if (!root)
+		return 0;
+	if ((val == root->val)&&(root->lc))
+		ans = root->lc->size;
+	else if (val > root->val)
+	{
+		ans += root->co;
+		if (root->lc)
+			ans += root->lc->size;
+		if (root->rc)
+			ans += rank1(root->rc, val) ;
+	}
+	else if (root->lc)
+		ans = rank1(root->lc,val);
+	return ans;
+}
+int main()
+{
+	insert(root, 11, 6);
+	insert(root, 7, 13);
+	insert(root, 14, 14);
+	insert(root, 3, 18);
+	insert(root, 9, 22);
+	insert(root, 18, 20);
+	insert(root, 16, 26);
+	insert(root, 15, 30);
+	insert(root, 17, 12);
+	printf("≤Â»Î:\n");
+	printf("«∞–Ú:");
+	preor(root);
+	printf("\n");
+	cout << rank1(root,19)+1;
+}
